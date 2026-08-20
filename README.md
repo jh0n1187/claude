@@ -24,7 +24,7 @@ Contextos específicos de negócio e tecnologia permanecem dentro de cada projet
 
 Lista de **skills importantes/recomendadas** que utilizo ou quero ter como referência.
 
-Por enquanto, funciona apenas como um catálogo de nomes de skills úteis, e não como implementação das próprias skills.
+Por enquanto, funciona apenas como um catálogo de nomes de skills úteis.
 
 ---
 
@@ -34,17 +34,22 @@ O Claude Code utiliza `~/.claude/CLAUDE.md` para instruções pessoais carregada
 
 ### Windows
 
-No PowerShell:
-
-```powershell
-New-Item -ItemType Directory -Force "$HOME\.claude"
-Copy-Item ".\CLAUDE.md" "$HOME\.claude\CLAUDE.md"
-```
-
-O arquivo ficará normalmente em:
+Crie a pasta:
 
 ```text
-C:\Users\SEU_USUARIO\.claude\CLAUDE.md
+%USERPROFILE%\.claude\
+```
+
+E copie o `CLAUDE.md` deste repositório para:
+
+```text
+%USERPROFILE%\.claude\CLAUDE.md
+```
+
+Exemplo:
+
+```text
+C:\Users\SeuUsuario\.claude\CLAUDE.md
 ```
 
 ### Linux
@@ -54,7 +59,7 @@ mkdir -p ~/.claude
 cp CLAUDE.md ~/.claude/CLAUDE.md
 ```
 
-Resultado:
+O arquivo ficará em:
 
 ```text
 ~/.claude/CLAUDE.md
@@ -67,12 +72,12 @@ mkdir -p ~/.claude
 cp CLAUDE.md ~/.claude/CLAUDE.md
 ```
 
-Resultado:
+O arquivo ficará em:
 
 ```text
 ~/.claude/CLAUDE.md
 ```
 
-Depois disso, o conteúdo do `CLAUDE.md` estará disponível globalmente nas sessões do Claude Code.
+Depois disso, o conteúdo do `CLAUDE.md` será utilizado globalmente nas sessões do Claude Code.
 
 > O `CLAUDE.md` deste repositório é global. Cada projeto pode continuar tendo seu próprio `CLAUDE.md` com instruções e referências específicas daquele projeto.

@@ -651,6 +651,62 @@ Ele deve mostrar:
 
 Não utilize arquivos de contexto como task tracker.
 
+### Renovação de sessão e janela de contexto
+
+Preserve a qualidade da janela de contexto.
+
+Sessões longas acumulam decisões, código, logs, tentativas e resultados que podem reduzir a qualidade do raciocínio em tarefas posteriores.
+
+Após planejamentos grandes ou ciclos extensos de implementação, prefira iniciar uma **nova sessão antes de começar um novo tema relevante**.
+
+Considere sugerir ou preparar uma nova sessão quando:
+
+* um planejamento ou especificação extensa foi concluído;
+* uma implementação grande foi concluída;
+* várias etapas importantes já foram executadas na mesma sessão;
+* houve grande volume de código, logs ou investigação;
+* o próximo trabalho pertence a um tema diferente;
+* o contexto anterior não é mais necessário para executar a próxima tarefa;
+* continuar na sessão atual aumentaria ruído ou consumo desnecessário da janela de contexto.
+
+Não interrompa uma tarefa em andamento apenas para renovar contexto.
+
+Prefira concluir uma unidade lógica de trabalho antes da troca.
+
+### Handoff antes da nova sessão
+
+Quando ainda houver continuidade necessária, antes de encerrar a sessão:
+
+1. atualize `business-context.md` quando houver aprendizado de negócio;
+2. atualize `technical-context.md` quando houver aprendizado técnico;
+3. atualize o `CLAUDE.md` local quando houver mudança operacional;
+4. registre trabalho pendente e próximo passo quando necessário;
+5. garanta que decisões importantes não existam apenas no histórico da conversa.
+
+Se o próximo tema depender diretamente do trabalho atual, crie um handoff curto com apenas o contexto necessário para retomada.
+
+A nova sessão deve conseguir continuar utilizando os arquivos persistentes do projeto, sem depender da janela de contexto da sessão anterior.
+
+### Regra prática
+
+```text
+Mesmo tema + trabalho em andamento
+→ continuar sessão
+
+Unidade lógica concluída + ainda há execução relacionada
+→ avaliar contexto acumulado
+
+Planejamento/execução grande concluída + novo tema
+→ preferir nova sessão
+
+Janela muito carregada + trabalho ainda pendente
+→ persistir estado → handoff → nova sessão
+```
+
+**Não utilize uma única sessão indefinidamente apenas porque ainda existe espaço na janela de contexto.**
+
+O objetivo é preservar **qualidade de raciocínio, foco e contexto relevante**, e não maximizar o uso da janela disponível.
+
 Se a sessão estiver longa e ainda houver trabalho relevante pendente, crie um handoff em `.md` contendo:
 
 * objetivo;

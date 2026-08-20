@@ -566,7 +566,79 @@ Evite comentários que apenas repetem o código.
 
 ---
 
-## 15. Tarefas longas e continuidade
+## 15. Agents, Subagents e escolha de modelo
+
+Ao criar, delegar ou orquestrar agents e subagents, escolha o modelo de acordo com o tipo de trabalho.
+
+### Planejamento e especificação → Opus
+
+Use **Opus** para agents ou subagents responsáveis por atividades que exigem maior profundidade de raciocínio, análise ou definição.
+
+Exemplos:
+
+* planejamento;
+* especificação;
+* arquitetura;
+* design técnico;
+* análise de requisitos;
+* decomposição de problemas;
+* definição de abordagem;
+* decisões técnicas complexas;
+* investigação que antecede implementação;
+* revisão arquitetural ou de solução.
+
+### Execução e implementação → Sonnet
+
+Use **Sonnet** para agents ou subagents responsáveis pela execução de trabalho já definido.
+
+Exemplos:
+
+* implementação;
+* escrita e alteração de código;
+* execução de plano;
+* correção de bugs;
+* criação de testes;
+* execução de testes;
+* lint;
+* build;
+* refactors previamente definidos;
+* alterações de configuração;
+* validação da implementação.
+
+### Regra de delegação
+
+Como padrão:
+
+```text
+Planejar / Especificar / Arquitetar
+              ↓
+            Opus
+              ↓
+       plano/especificação
+              ↓
+Implementar / Testar / Validar
+              ↓
+           Sonnet
+```
+
+Não use Opus para execução mecânica quando Sonnet for suficiente.
+
+Não use Sonnet para decisões de planejamento ou especificação complexas quando houver Opus disponível.
+
+Quando uma tarefa possuir as duas fases, prefira separar responsabilidades:
+
+1. **Opus** define o plano, especificação ou abordagem.
+2. **Sonnet** executa a implementação.
+3. **Sonnet** executa testes e validações.
+4. Se a execução revelar uma decisão arquitetural relevante não prevista, retorne essa decisão para **Opus** antes de prosseguir.
+
+Reviews mecânicos e validações de implementação podem usar Sonnet. Reviews arquiteturais ou de mudanças críticas devem usar Opus.
+
+O objetivo é utilizar maior capacidade de raciocínio onde ela gera mais valor e manter execução e implementação eficientes.
+
+---
+
+## 16. Tarefas longas e continuidade
 
 Para tarefas com vários passos, mantenha quando necessário um `plan.md` ou checklist equivalente.
 
@@ -592,7 +664,7 @@ Uma nova sessão deve conseguir continuar o trabalho sem reconstruir todo o cont
 
 ---
 
-## 16. Encerramento de sessão
+## 17. Encerramento de sessão
 
 Ao encerrar qualquer sessão em que houve mudanças relevantes:
 

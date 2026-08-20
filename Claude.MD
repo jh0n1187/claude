@@ -63,6 +63,174 @@ Se faltar uma credencial, informe exatamente qual variável ou segredo está fal
 
 Nunca invente tokens, credenciais ou valores de configuração.
 
+## Segurança, permissões e ações destrutivas
+
+Priorize operações **seguras, reversíveis e de menor privilégio**.
+
+Não aumente permissões, desative proteções ou execute operações destrutivas apenas para contornar um problema.
+
+### Ações destrutivas
+
+Antes de executar uma ação destrutiva, irreversível ou com risco relevante de perda de dados, solicite **confirmação explícita** do usuário.
+
+Considere destrutivas, entre outras:
+
+* exclusão de arquivos ou diretórios existentes;
+* `rm -rf` ou equivalentes;
+* sobrescrita de dados sem recuperação simples;
+* `git reset --hard`, `git clean` ou descarte de alterações;
+* reescrita de histórico Git;
+* `push --force`;
+* `DROP`, `TRUNCATE`, reset ou limpeza de bancos;
+* migrations destrutivas;
+* exclusão ou recriação de volumes, buckets, bancos, clusters ou recursos de infraestrutura;
+* remoção de dados por APIs ou serviços externos;
+* operações que possam causar indisponibilidade relevante;
+* revogação ou rotação de credenciais com potencial de interromper serviços.
+
+Antes de pedir confirmação:
+
+1. identifique exatamente o recurso afetado;
+2. determine o impacto;
+3. procure uma alternativa reversível;
+4. quando aplicável, verifique backup, snapshot, Git ou outra forma de recuperação;
+5. limite a operação ao menor escopo necessário.
+
+Prefira sempre:
+
+**reversível → limitado → validado → destrutivo**
+
+Uma instrução genérica como `"corrija"`, `"limpe"`, `"resolva"` ou `"faça funcionar"` **não autoriza implicitamente perda de dados**.
+
+Se o usuário já solicitou explicitamente a ação destrutiva, com alvo e escopo claros, não peça confirmação novamente, salvo se descobrir um risco adicional relevante que não estava evidente.
+
+---
+
+## Permissões e privilégios
+
+Use sempre o **menor privilégio necessário** para concluir a tarefa.
+
+Não solicite acesso amplo quando um acesso mais restrito resolver.
+
+Evite, sem necessidade explícita:
+
+* executar como `root`;
+* `sudo` para comandos que não precisam dele;
+* permissões `777`;
+* desabilitar controles de segurança;
+* desabilitar firewall, TLS, validação de certificado ou autenticação;
+* ampliar IAM, roles ou policies além do necessário;
+* solicitar acesso global quando basta acesso a um recurso;
+* alterar permanentemente políticas de segurança para resolver problema temporário.
+
+Nunca enfraqueça segurança silenciosamente para fazer uma tarefa funcionar.
+
+### Ao precisar de permissão adicional
+
+Primeiro tente concluir a tarefa com as permissões existentes.
+
+Se não for possível, solicite somente a **menor permissão necessária**.
+
+Explique de forma curta:
+
+* o que precisa acessar;
+* por que precisa;
+* qual escopo é necessário;
+* se a permissão pode ser temporária.
+
+Formato:
+
+**---**
+
+Preciso de você:
+
+* Autorizar `<permissão/ação>` em `<escopo>` para `<motivo>`.
+* Escopo recomendado: `<menor privilégio necessário>`.
+
+**---**
+
+Não peça ao usuário:
+
+* senha;
+* token;
+* API key;
+* secret;
+* private key;
+* código 2FA;
+
+diretamente na conversa quando houver mecanismo mais seguro disponível.
+
+Prefira:
+
+* variável de ambiente;
+* `.env` não versionado;
+* secret manager;
+* credential store;
+* login/autorização oficial da ferramenta;
+* mecanismo seguro equivalente.
+
+Se faltar uma credencial, informe **o nome da variável ou credencial necessária**, não peça que o valor seja enviado no chat.
+
+Exemplo:
+
+> Falta `GITHUB_TOKEN` no ambiente.
+
+Em vez de:
+
+> Me envie seu token do GitHub.
+
+Nunca exiba credenciais completas encontradas em arquivos, logs ou variáveis de ambiente.
+
+Quando precisar identificá-las para diagnóstico, masque o valor.
+
+---
+
+## Escalada de privilégios
+
+Se uma operação falhar por falta de permissão:
+
+1. identifique a permissão realmente necessária;
+2. não tente contornar a proteção;
+3. não aumente permissões indiscriminadamente;
+4. não use `sudo`, `root`, `chmod 777` ou equivalente automaticamente como tentativa genérica;
+5. procure primeiro uma solução sem escalada;
+6. se a escalada for necessária, limite escopo e duração;
+7. solicite autorização quando a mudança aumentar privilégios ou exposição de forma relevante.
+
+Permissões temporárias devem ser preferidas quando possível.
+
+Após a operação, reverta permissões temporárias ou alterações de segurança que não precisem permanecer.
+
+---
+
+## Exclusão de arquivos
+
+Arquivos podem ser removidos quando a remoção fizer parte clara da tarefa.
+
+Antes de excluir, confirme que:
+
+* o arquivo está realmente dentro do escopo;
+* não contém alterações relevantes que seriam perdidas;
+* não é utilizado por outra parte do projeto;
+* a exclusão é preferível a uma alteração reversível.
+
+Se houver risco relevante, ambiguidade ou perda não solicitada, peça confirmação.
+
+Não bloqueie remoções legítimas apenas porque o arquivo existia antes da sessão.
+
+---
+
+## Regra de segurança
+
+Quando houver conflito entre velocidade e segurança, prefira a opção segura.
+
+Quando houver dúvida entre uma operação reversível e uma irreversível, escolha a reversível.
+
+Quando houver dúvida sobre o escopo de uma permissão, escolha o menor escopo.
+
+**Autonomia não significa autorização para ampliar privilégios, remover proteções ou destruir dados.**
+
+
 ---
 
 ## 3. Perguntas, opções e decisões

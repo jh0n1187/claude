@@ -51,6 +51,15 @@ Preciso de você:
 Se não precisar de intervenção do usuário, não crie esse bloco.
 
 
+### Idioma
+
+Responda em **português do Brasil (PT-BR)** por padrão.
+
+Use outro idioma quando o usuário solicitar, quando o entregável exigir ou quando preservar o idioma original aumentar a precisão.
+
+Não traduza comandos, código, APIs, identificadores, mensagens de erro ou termos técnicos quando isso prejudicar clareza.
+
+
 ## 2. Autonomia de execução
 
 Execute você mesmo tudo que puder executar.
@@ -623,289 +632,87 @@ Evite comentários que apenas repetem o código.
 
 ## 15. Agents, Subagents e orquestração
 
-Use subagents de forma deliberada.
+Use subagents somente quando **isolamento de contexto, especialização ou paralelismo** justificarem o custo de delegação.
 
-O objetivo não é maximizar paralelismo, mas **reduzir o contexto do agente principal sem fragmentar excessivamente o trabalho**.
+O objetivo é preservar a qualidade e o contexto do agente principal, não maximizar a quantidade de agents.
 
-Prefira poucos subagents com responsabilidades coesas a muitos subagents executando microtarefas.
+### Quando usar
 
-### Escolha de modelo
+**Não use subagent por padrão.**
 
-Não crie uma fase formal de planejamento para tarefas pequenas, óbvias ou de baixo risco. Vá direto à execução quando a abordagem estiver clara.
+Prefira o agente principal quando a tarefa:
 
-Use planejamento explícito quando houver múltiplas etapas, dependências, decisões arquiteturais, risco relevante ou coordenação entre workers.
+* for pequena ou direta;
+* envolver poucos arquivos;
+* depender fortemente do contexto já carregado;
+* for continuação imediata da alteração atual;
+* tiver alto acoplamento ou pouco paralelismo útil.
 
-#### Planejamento, especificação e arquitetura → Opus
+Use subagents quando houver uma unidade de trabalho significativa que possa ser isolada ou executada em paralelo sem coordenação excessiva.
 
-Use **Opus** para agents ou subagents responsáveis por:
+Antes de delegar, avalie:
 
-* planejamento;
-* especificação;
-* arquitetura;
-* design técnico;
-* análise de requisitos;
-* decomposição de problemas;
-* definição de abordagem;
-* decisões técnicas complexas;
-* investigação que antecede implementação;
-* revisão arquitetural ou de solução.
+> O benefício de um contexto independente supera o custo de delegação, leitura e consolidação?
 
-#### Execução, implementação e testes → Sonnet
+Se não, execute no agente principal.
 
-Use **Sonnet** para agents ou subagents responsáveis por:
+### Decomposição e limite
 
-* implementação;
-* escrita e alteração de código;
-* execução de planos;
-* correção de bugs;
-* criação e execução de testes;
-* lint e build;
-* refactors previamente definidos;
-* alterações de configuração;
-* validação da implementação.
+Agrupe tarefas relacionadas em **clusters coesos de responsabilidade**.
 
-Reviews mecânicos podem usar Sonnet.
+Não crie um worker por task, arquivo, componente ou microetapa.
 
-Reviews arquiteturais ou de mudanças críticas devem usar Opus.
-
-
-### Estratégia de decomposição
-
-Antes de criar subagents, decomponha o trabalho em **blocos coesos de responsabilidade**.
-
-Não crie automaticamente um subagent para cada task, arquivo, componente ou pequena etapa do plano.
-
-Prefira:
-
-```text
-ERRADO — granularidade excessiva
-
-Task 1 → Agent 1
-Task 2 → Agent 2
-Task 3 → Agent 3
-Task 4 → Agent 4
-Task 5 → Agent 5
-Task 6 → Agent 6
-...
-
-CORRETO — agrupamento por responsabilidade
-
-Tasks 1–6
-   ↓
-Subagent A
-
-Tasks 7–12
-   ↓
-Subagent B
-
-Tasks 13–18
-   ↓
-Subagent C
-```
-
-Agrupe tarefas que:
-
-* pertencem ao mesmo domínio;
-* alteram áreas relacionadas do código;
-* compartilham contexto;
-* possuem dependência natural;
-* podem ser executadas sequencialmente pelo mesmo worker;
-* produzem um resultado lógico único.
-
-Cada subagent deve receber uma **unidade de trabalho significativa**, e não uma microtarefa.
-
-
-### Limite de subagents
+Agrupe trabalho que compartilhe domínio, arquivos, contexto, dependências ou resultado lógico.
 
 Use como padrão:
 
-**1 agente principal/orquestrador + até 3 subagents workers ativos.**
+**1 agente principal/orquestrador + até 3 workers simultâneos.**
+
+Três workers são um limite, não uma meta. Use 1 ou 2 quando forem suficientes.
+
+Não exceda 3 workers simultâneos salvo regra explícita do projeto ou solicitação do usuário.
+
+Use o acoplamento como critério principal:
 
 ```text
-              Orquestrador
-             /     |      \
-            /      |       \
-       Worker A Worker B Worker C
+Baixo acoplamento
+→ pode paralelizar
+
+Médio acoplamento
+→ agrupar tarefas relacionadas no mesmo worker
+
+Alto acoplamento
+→ agente principal ou único worker
 ```
 
-**3 workers é limite de concorrência, não meta.** Use menos quando suficiente e não exceda 3 simultâneos, salvo regra explícita do projeto ou solicitação do usuário. Muitas tasks devem ser agrupadas em clusters coesos, nunca convertidas automaticamente em um worker por task.
+Subagents **não devem criar outros subagents por padrão**. Evite árvores profundas de delegação.
 
+### Escolha de modelo
 
-### Quando usar subagents
-
-Use subagents quando houver trabalho suficientemente grande para justificar isolamento de contexto ou paralelismo.
-
-Exemplos:
-
-* módulos independentes;
-* investigação paralela;
-* implementação de áreas independentes;
-* análise de diferentes partes de um sistema;
-* clusters de tarefas que compartilham contexto interno;
-* trabalho que ocuparia parcela significativa da janela do agente principal.
-
-Antes de criar um subagent, avalie se o custo de delegação é menor que o custo de executar diretamente.
-
-**Não use subagent** quando a tarefa:
-
-* puder ser concluída rapidamente pelo agente principal;
-* exigir apenas poucos arquivos;
-* depender fortemente do contexto já carregado;
-* for continuação direta da alteração atual;
-* tiver pouco potencial de paralelismo ou isolamento de contexto.
-
-Subagent deve resolver **complexidade, isolamento de contexto ou paralelismo útil**, não apenas distribuir trabalho.
-
-**Não crie subagent apenas porque a funcionalidade existe.**
-
-
-### Acoplamento antes do paralelismo
-
-Antes de dividir o trabalho, avalie o acoplamento entre as tarefas.
-
-#### Baixo acoplamento
-
-Pode executar em paralelo.
+Use o **menor modelo capaz de executar a tarefa com qualidade**.
 
 ```text
-Worker A ── feature independente
-Worker B ── módulo independente
-Worker C ── investigação independente
+Planejamento/arquitetura complexos
+→ Opus
+
+Implementação, execução e testes
+→ Sonnet
+
+Tarefas auxiliares ou mecânicas
+→ modelo mais econômico quando suficiente
 ```
 
-#### Médio acoplamento
+Não crie uma fase formal de planejamento ou use Opus para tarefas pequenas, óbvias ou totalmente especificadas.
 
-Agrupe tarefas relacionadas no mesmo worker.
+Use Opus quando houver decisões arquiteturais, decomposição complexa, requisitos ambíguos, risco relevante ou revisão de alto impacto.
 
-```text
-Worker A
- ├── Task 1
- ├── Task 2
- └── Task 3
-```
+Use Sonnet para implementação, bugs, refactors definidos, configuração, testes, lint, build e reviews de implementação.
 
-Prefira execução sequencial dentro do cluster quando as tasks compartilham contexto.
+Se durante a execução surgir uma decisão arquitetural material não prevista, escale somente essa decisão para Opus quando necessário.
 
-#### Alto acoplamento
+### Contexto e retorno dos workers
 
-Não fragmente.
-
-Mantenha no agente principal ou em um único subagent quando várias tarefas dependem continuamente das decisões e resultados umas das outras.
-
-A variável principal para decidir a quantidade de subagents é o **acoplamento da tarefa**, não o número bruto de tasks.
-
-
-### Papel do orquestrador
-
-O agente principal deve atuar como **orquestrador**, evitando executar trabalho detalhado que possa ser delegado com segurança.
-
-Responsabilidades:
-
-1. compreender o objetivo;
-2. consultar o contexto necessário;
-3. criar ou validar o plano;
-4. identificar dependências;
-5. agrupar tasks relacionadas;
-6. avaliar acoplamento;
-7. definir quais clusters podem executar em paralelo;
-8. delegar para no máximo 3 workers por padrão;
-9. receber e consolidar resultados;
-10. resolver conflitos entre entregas;
-11. executar a validação integrada final.
-
-O orquestrador deve preservar sua janela de contexto para **coordenação, decisões e integração**.
-
-Evite preencher seu contexto com logs extensos, detalhes intermediários ou investigação que pode permanecer dentro de um worker.
-
-
-### Fluxo recomendado
-
-Para tarefas grandes:
-
-```text
-                 OPUS
-          Planejamento / Arquitetura
-                    │
-                    ▼
-          Decomposição em tasks
-                    │
-                    ▼
-         Agrupamento por contexto
-             e responsabilidade
-                    │
-                    ▼
-              Orquestrador
-              /     |     \
-             /      |      \
-            ▼       ▼       ▼
-        SONNET   SONNET   SONNET
-        Cluster A Cluster B Cluster C
-            │       │       │
-            └───────┼───────┘
-                    ▼
-              Orquestrador
-                    │
-                    ▼
-          Integração + validação
-```
-
-Quando uma tarefa possuir planejamento e execução:
-
-1. **Opus** define plano, arquitetura e abordagem.
-2. O plano é dividido em tasks.
-3. Tasks relacionadas são agrupadas em clusters coesos.
-4. O orquestrador avalia dependências e acoplamento.
-5. Até **3 workers Sonnet** executam os clusters.
-6. Cada worker executa internamente suas tasks relacionadas.
-7. O orquestrador consolida os resultados.
-8. Sonnet executa testes e validações de implementação.
-9. Se surgir decisão arquitetural relevante não prevista, escale a decisão para **Opus**.
-
-
-### Economia de validação entre workers
-
-Cada worker deve validar seu próprio cluster no menor escopo necessário.
-
-O orquestrador não deve repetir automaticamente todos os testes já executados pelos workers.
-
-Na integração final, priorize:
-
-* testes que cruzam clusters;
-* validações de integração;
-* verificações necessárias para confirmar o conjunto final.
-
-Não execute a mesma suíte completa em múltiplos workers e novamente no orquestrador sem motivo técnico.
-
-Resultados de testes dos workers devem ser consolidados pelo orquestrador em vez de reproduzidos integralmente no contexto principal.
-
----
-
-### Eficiência de agents e contexto
-
-Use o menor modelo capaz de executar a tarefa com qualidade.
-
-Quando disponível e suficiente, prefira um **modelo mais econômico** para tarefas auxiliares ou mecânicas, como:
-
-* localização e leitura de arquivos;
-* lint, formatação e verificações mecânicas;
-* documentação simples;
-* análise simples de logs;
-* pequenas alterações totalmente especificadas;
-* tarefas auxiliares repetitivas.
-
-Não use Opus para execução mecânica quando Sonnet ou um modelo mais econômico forem suficientes.
-
-#### Delegação recursiva
-
-Subagents **não devem criar outros subagents por padrão**.
-
-Delegação recursiva só deve ocorrer quando houver necessidade clara, escopo limitado e benefício superior ao custo adicional.
-
-Evite árvores profundas de agents.
-
-#### Contexto mínimo
-
-Forneça a cada subagent somente:
+Forneça a cada worker somente:
 
 * objetivo;
 * restrições relevantes;
@@ -913,13 +720,11 @@ Forneça a cada subagent somente:
 * decisões já tomadas que afetem a tarefa;
 * critérios de conclusão.
 
-Não envie todo o histórico da sessão ou todos os arquivos de contexto por conveniência.
+Não envie todo o histórico ou contexto do projeto por conveniência.
 
-O subagent deve buscar contexto adicional somente quando necessário.
+Cada worker deve validar seu próprio cluster no **menor escopo suficiente**.
 
-#### Resultado dos subagents
-
-Subagents devem retornar resultados **concisos, acionáveis e focados**. Por padrão, reporte somente:
+O retorno deve conter somente o necessário para integração:
 
 * resultado;
 * arquivos alterados;
@@ -927,67 +732,49 @@ Subagents devem retornar resultados **concisos, acionáveis e focados**. Por pad
 * testes executados e resultado;
 * riscos ou pendências.
 
-Não reproduza raciocínio, logs extensos, arquivos completos quando diff ou referência basta, contexto já conhecido ou investigação intermediária sem valor para a decisão.
+Não retorne raciocínio, logs extensos, arquivos completos ou investigação intermediária sem necessidade.
 
-#### Agents general-purpose
+O orquestrador deve consolidar resultados e executar apenas as validações integradas necessárias. Não repita automaticamente testes que os workers já executaram quando alterações posteriores não puderem invalidá-los.
 
-Evite agents `general-purpose` como padrão para tarefas recorrentes.
+### Papel do orquestrador
 
-Quando um padrão se repetir, prefira um agent especializado com responsabilidade clara, prompt enxuto, contexto limitado e modelo adequado.
+Em tarefas grandes, o agente principal deve preservar contexto para:
 
----
+1. objetivo e decisões;
+2. dependências e decomposição;
+3. delegação dos clusters;
+4. integração dos resultados;
+5. resolução de conflitos;
+6. validação final.
 
-### Evitar fragmentação de contexto
-
-Não fragmente uma tarefa apenas para aumentar paralelismo. Cada novo subagent adiciona custo de contexto, coordenação, comunicação, consolidação, leituras duplicadas e risco de decisões inconsistentes.
-
-Antes de criar outro worker, avalie se o trabalho realmente precisa de contexto independente. Se puder ser agrupado sem prejudicar qualidade ou paralelismo relevante, **agrupe**.
-
-
-### Code review eficiente
-
-Comece pelo **menor contexto suficiente**:
-
-1. diff ou PR;
-2. arquivos modificados;
-3. contratos, interfaces e testes diretamente relacionados;
-4. outras partes do projeto somente quando houver evidência de impacto.
-
-Não carregue ou revise o repositório inteiro por padrão.
-
-Use **Sonnet** para reviews de implementação, qualidade, testes e validações.
-
-Use **Opus** para arquitetura, segurança crítica, contratos importantes ou mudanças de alto impacto.
-
----
+Evite carregar no contexto principal logs, investigação detalhada ou informação intermediária que possa permanecer no worker.
 
 ### Regra prática
 
 ```text
-Tarefa pequena
+Tarefa pequena/direta
 → agente principal
 
 Tarefa grande + baixo acoplamento
-→ até 3 workers paralelos
+→ até 3 workers
 
 Muitas tasks relacionadas
-→ agrupar em clusters → poucos workers
+→ clusters maiores → poucos workers
 
-Tasks sequenciais e dependentes
+Tasks sequenciais/dependentes
 → mesmo worker
 
 Alto acoplamento
 → agente principal ou único worker
 
-Planejamento / arquitetura
+Planejamento/arquitetura complexos
 → Opus
 
-Implementação / execução / testes
-→ Sonnet
+Implementação/testes
+→ Sonnet ou menor modelo suficiente
 ```
 
-**Padrão: poucos agentes, clusters maiores, responsabilidades claras e contexto do orquestrador preservado.**
-
+**Padrão: menor número de agents que preserve qualidade, isolamento útil e paralelismo real.**
 
 ## 16. Tarefas longas e continuidade
 

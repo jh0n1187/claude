@@ -30,6 +30,65 @@ Prefira busca e leitura direcionadas ao carregamento integral de arquivos ou rep
 Pare de investigar quando houver evidência suficiente para agir com segurança. Expanda a investigação somente diante de incerteza material, risco relevante ou falha da abordagem atual.
 
 
+## Classificação do projeto e aplicação das regras
+
+Antes de aplicar regras específicas de engenharia, identifique a natureza do projeto e da tarefa atual.
+
+### Projeto de desenvolvimento
+
+Considere projeto de desenvolvimento quando envolver predominantemente:
+
+* código-fonte;
+* aplicações, APIs, serviços ou bibliotecas;
+* infraestrutura como código;
+* automações executáveis;
+* desenvolvimento, manutenção, debugging ou evolução de sistemas.
+
+Nesse contexto, aplique normalmente, quando pertinentes, as regras de testes, lint, typecheck, build, Git, qualidade de código e validação técnica.
+
+### Projeto não relacionado a desenvolvimento
+
+Exemplos:
+
+* documentação;
+* estratégia;
+* pesquisa;
+* planejamento;
+* produto;
+* arquitetura conceitual;
+* análise de negócio;
+* processos;
+* apresentações;
+* conteúdo;
+* estudos.
+
+Nesse contexto:
+
+* não execute testes, lint, typecheck ou build sem necessidade;
+* não aplique workflows de Git automaticamente;
+* não crie ou inspecione commits sem relevância para a tarefa;
+* não aplique regras de qualidade de código quando não houver código;
+* adapte a validação ao tipo de entregável;
+* use agents/subagents somente quando houver benefício real de isolamento, especialização ou paralelismo;
+* mantenha as regras globais de segurança, autonomia, eficiência, contexto e qualidade.
+
+### Projeto híbrido
+
+Quando houver componentes técnicos e não técnicos, aplique cada regra somente ao trabalho ao qual ela é pertinente.
+
+Exemplo:
+
+```text
+documentação estratégica + implementação
+→ validar conteúdo na documentação
+→ testar/lint/build somente na implementação afetada
+```
+
+**Aplique regras pelo contexto e risco real da tarefa, não mecanicamente pela existência da regra neste arquivo.**
+
+Regras irrelevantes para o trabalho atual devem ser ignoradas.
+
+
 ## 1. Estilo de resposta
 
 Seja direto.
@@ -524,13 +583,37 @@ Nunca coloque no Git:
 * certificados privados.
 
 
-## 12. Execução, testes e verificação
+## 12. Validação do trabalho
 
-Não considere uma tarefa concluída apenas porque o código foi escrito.
+Não considere uma tarefa concluída apenas porque o entregável foi produzido.
 
-Valide de forma progressiva e proporcional ao risco.
+Valide de forma progressiva e proporcional ao risco e ao tipo de trabalho.
 
-### Durante a implementação
+Use como referência:
+
+```text
+Código
+→ testes / lint / typecheck / build
+
+Infraestrutura
+→ validate / plan / dry-run / verificações aplicáveis
+
+Documentação
+→ consistência / completude / referências
+
+Estratégia e negócio
+→ coerência / premissas / aderência ao objetivo
+
+Pesquisa
+→ qualidade das fontes / evidências / atualidade
+
+Artefatos
+→ estrutura / conteúdo / integridade do entregável
+```
+
+Não execute verificações técnicas de desenvolvimento quando elas não forem pertinentes ao entregável.
+
+### Durante implementação de software
 
 Prefira o menor escopo de validação capaz de detectar regressões na alteração atual.
 
@@ -567,6 +650,8 @@ Para mudanças de maior alcance, execute testes de integração, build ou suíte
 ---
 
 ## 13. Git e checkpoints
+
+Esta seção se aplica somente quando Git for relevante para o projeto ou tarefa atual.
 
 Use Git como ferramenta de controle e verificação, não como loop após cada alteração.
 
@@ -612,7 +697,9 @@ Se o projeto não utiliza Git, não execute `git init` automaticamente.
 
 ---
 
-## 14. Qualidade de código
+## 14. Qualidade de implementação
+
+Esta seção se aplica a tarefas que alterem código, configuração ou outros artefatos técnicos executáveis.
 
 Prefira o menor diff que resolva corretamente o problema.
 

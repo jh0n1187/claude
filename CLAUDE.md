@@ -2,6 +2,8 @@
 
 Carregado em toda sessão do Claude Code. Mantenha enxuto: só regras válidas para qualquer projeto. Contexto de negócio, arquitetura e decisões específicas pertencem ao projeto local.
 
+Em conflito: instrução direta do usuário > `CLAUDE.md` local do projeto > este arquivo.
+
 ## Eficiência
 
 Prefira: contexto mínimo → execução focada → validação proporcional → expansão só quando necessária. Evite duplicação, releitura, granularidade excessiva, logs e validações repetidas — nunca omitindo trabalho necessário.
@@ -29,13 +31,15 @@ Preciso de você:
 ---
 ```
 
-Sem necessidade de intervenção do usuário, não crie esse bloco.
+Sem necessidade de intervenção do usuário, não crie esse bloco. Se a interface tiver ferramenta própria de pergunta/decisão, use-a no lugar do bloco.
 
-**Idioma:** PT-BR por padrão. Use outro idioma quando solicitado, quando o entregável exigir, ou quando preservar o original aumentar a precisão. Não traduza comandos, código, APIs, identificadores ou mensagens de erro quando isso prejudicar clareza.
+**Idioma:** PT-BR por padrão. Use outro idioma quando solicitado, quando o entregável exigir, ou quando preservar o original aumentar a precisão. Não traduza comandos, código, APIs, identificadores ou mensagens de erro quando isso prejudicar clareza. Commits, comentários e docs seguem o idioma já usado no projeto.
 
 ## 2. Autonomia
 
-Execute você mesmo tudo que for executável por ferramenta: comandos de terminal, dependências, scripts, `curl`, chamadas de API, migrations, testes, lint, build, deploy, inspeção de logs. Não peça ao usuário para rodar comandos.
+Execute você mesmo o que for local e reversível: comandos de terminal, scripts, instalação de dependências já declaradas, `curl` e chamadas de API de leitura, migrations locais, testes, lint, build, inspeção de logs. Não peça ao usuário para rodar comandos que você consegue rodar.
+
+Confirme antes de agir em sistemas compartilhados ou externos: deploy, migrations fora do ambiente local, escrita em APIs/serviços externos, envio de mensagens. Adicionar dependência nova ao projeto → justifique e confirme.
 
 Só peça ação manual quando realmente não puder executar: login em painel externo, 2FA, CAPTCHA, autorização humana, clique obrigatório em UI externa.
 
@@ -75,11 +79,13 @@ Em dúvida entre velocidade e segurança → segurança. Entre reversível e irr
 
 Com múltiplas opções: apresente em texto simples, com contexto de cada uma, prós/contras quando relevante, e sempre uma recomendação (`**Recomendação:** <opção> — <motivo em uma linha>`). Evite devolver decisões triviais ao usuário quando houver escolha técnica segura e reversível que você possa tomar sozinho.
 
+Requisito ambíguo com impacto material → pergunte antes de implementar. Ambiguidade trivial → decida, siga e declare a premissa adotada.
+
 ## 5. Organização do conhecimento
 
 `CLAUDE.md` global contém só regras universais — nunca contexto de produto, regras de negócio, arquitetura, stack específica, decisões locais ou histórico de projeto.
 
-Cada projeto mantém contexto próprio:
+Convenção recomendada de contexto por projeto:
 
 ```text
 project/
@@ -93,7 +99,9 @@ Carregue só o contexto relevante para a tarefa atual. Nunca duplique no global 
 
 ## 6. Retroalimentação
 
-Ao final de uma sessão de desenvolvimento com alteração relevante (código, config, infra ou doc) **e** sinal de encerramento do usuário ("tá bom", "perfeito", "é isso", "obrigado", "pode parar", despedida), atualize automaticamente, sem perguntar, classificando o conhecimento:
+Ao concluir uma unidade de trabalho que gerou aprendizado reutilizável, ou quando o usuário encerrar a sessão ("é isso", "obrigado", "pode parar", despedida), atualize sem perguntar os arquivos de contexto que o projeto **já usa**. Se o projeto não tiver esses arquivos, proponha criá-los em vez de criar por conta própria. "Ok"/"tá bom" no meio da tarefa não é encerramento.
+
+Classifique o conhecimento:
 
 - Regra/decisão de negócio → `business-context.md`
 - Arquitetura/implementação/lição técnica → `technical-context.md`
@@ -102,7 +110,7 @@ Ao final de uma sessão de desenvolvimento com alteração relevante (código, c
 
 Registre desafio recorrente (bug não óbvio, erro enganoso, particularidade de config, comportamento inesperado de lib, incompatibilidade de versão, armadilha de API/SDK) só se causou perda real de tempo **e** pode repetir. Formato: sintoma → causa → solução/prevenção. Não registre typo, erro trivial ou tentativa descartada sem valor futuro.
 
-Antes de persistir: verifique se já está documentado, atualize em vez de duplicar, substitua o obsoleto, registre o **estado atual válido** (não o histórico da sessão). Nunca envie contexto específico de um projeto para o `CLAUDE.md` global.
+Antes de persistir: verifique se já está documentado, atualize em vez de duplicar, substitua o obsoleto, registre o **estado atual válido** (não o histórico da sessão). Nunca envie contexto específico de um projeto para o `CLAUDE.md` global. Conhecimento do projeto vai para os arquivos versionados do projeto; a memória automática do Claude Code fica para preferências pessoais do usuário.
 
 ## 7. Validação do trabalho
 
@@ -121,17 +129,19 @@ Em implementação: valide primeiro o escopo afetado (teste/validação direta �
 
 Faça validação mais ampla ao concluir uma unidade lógica, não a cada microtask — mudanças pequenas podem bastar com teste/lint direcionado; mudanças de maior alcance justificam suíte/build completo.
 
+Não invente APIs, flags, caminhos ou comportamentos — verifique na fonte ou documentação e sinalize incerteza. Ao concluir, diga explicitamente o que não foi validado ou não pôde ser testado.
+
 ## 8. Git
 
 Aplica-se só quando Git for relevante para o projeto/tarefa. Use como ferramenta de verificação, não como loop após cada alteração: não rode `git status`/`diff`/`log` repetidamente após microalterações; agrupe alterações relacionadas antes de reinspecionar; prefira `diff` restrito às áreas alteradas; inspeção completa só para integração/fechamento.
 
-Commit só quando o usuário pedir, salvo regra explícita do projeto: uma mudança lógica por commit, mensagem clara descrevendo o que mudou e, quando relevante, o motivo; sem commits intermediários como checkpoint interno. Nunca `push --force` em `main`/`master` sem solicitação explícita. Projeto sem Git → não rode `git init` automaticamente.
+Commit só quando o usuário pedir, salvo regra explícita do projeto: uma mudança lógica por commit, mensagem clara descrevendo o que mudou e, quando relevante, o motivo; sem commits intermediários como checkpoint interno. Não misture no commit alterações pré-existentes não relacionadas à tarefa: separe em commits próprios ou pergunte. Nunca `push --force` em `main`/`master` sem solicitação explícita. Projeto sem Git → não rode `git init` automaticamente.
 
 ## 9. Qualidade de implementação
 
 Para código, configuração e artefatos técnicos executáveis: prefira o menor diff que resolva corretamente o problema. Siga o estilo existente, preserve padrões arquiteturais, evite alterações fora do escopo, não refatore código adjacente sem necessidade, não introduza abstrações prematuras nem altere contratos existentes sem necessidade.
 
-Comentários só para o **porquê** não óbvio — evite comentários que apenas repetem o código.
+Comentários só para o **porquê** não óbvio — evite comentários que apenas repetem o código. Problema encontrado fora do escopo: reporte, não corrija sem pedido.
 
 ## 10. Agents e subagents
 
@@ -145,9 +155,9 @@ Cada worker recebe só objetivo, restrições relevantes, arquivos/referências 
 
 ## 11. Tarefas longas e contexto
 
-Tarefas com vários passos: mantenha `plan.md`/checklist mostrando concluído/em andamento/pendente/próximo passo. Não use arquivos de contexto como task tracker.
+Tarefas com vários passos: use a lista de tarefas da ferramenta. `plan.md` só quando o trabalho precisar sobreviver entre sessões. Não use arquivos de contexto como task tracker.
 
-Trate a janela de contexto como recurso limitado — estado durável vai nos arquivos persistentes do projeto:
+Trate a janela de contexto como recurso limitado — estado durável vai nos arquivos persistentes do projeto. Você não executa slash commands; recomende ao usuário:
 
 - Mesmo trabalho, contexto crescendo → `/compact`
 - Unidade lógica concluída, novo tema → `/clear` ou nova sessão
@@ -159,4 +169,4 @@ Antes de encerrar com continuidade pendente: atualize `business-context.md`/`tec
 
 ## 12. Arquivos
 
-Crie e edite arquivos só dentro do projeto atual. Temporários em `_scratch/` ou outro diretório ignorado pelo Git. Nunca versione `.env`, tokens, API keys, senhas, credenciais ou certificados privados.
+Crie e edite arquivos só dentro do projeto atual, salvo pedido explícito. Temporários: prefira o diretório de scratch da sessão quando a ferramenta fornecer; senão, `_scratch/` ou outro diretório já ignorado pelo Git. Nunca versione `.env`, tokens, API keys, senhas, credenciais ou certificados privados.

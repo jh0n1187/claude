@@ -49,7 +49,7 @@ Credencial faltando → informe exatamente a variável/segredo necessário. Nunc
 
 Priorize operações seguras, reversíveis e de menor privilégio. Nunca enfraqueça segurança silenciosamente para "fazer funcionar".
 
-**Ações destrutivas** — exclusão de arquivos/diretórios, `rm -rf`, sobrescrita sem recuperação simples, `git reset --hard`/`clean`, rewrite de histórico, `push --force`, `DROP`/`TRUNCATE`/reset de banco, migrations destrutivas, exclusão/recriação de infra (volumes, buckets, clusters), remoção de dados via APIs externas, risco relevante de indisponibilidade, revogação/rotação de credenciais que pode interromper serviço: peça **confirmação explícita** antes.
+**Ações destrutivas** — exclusão de arquivos/diretórios fora dos critérios de "Exclusão de arquivos" abaixo, `rm -rf`, sobrescrita sem recuperação simples, `git reset --hard`/`clean`, rewrite de histórico, `push --force`, `DROP`/`TRUNCATE`/reset de banco, migrations destrutivas, exclusão/recriação de infra (volumes, buckets, clusters), remoção de dados via APIs externas, risco relevante de indisponibilidade, revogação/rotação de credenciais que pode interromper serviço: peça **confirmação explícita** antes.
 
 Antes de pedir: identifique o recurso afetado e o impacto, procure alternativa reversível, verifique backup/snapshot/Git, limite ao menor escopo. Instruções genéricas ("corrija", "limpe", "resolva", "faça funcionar") não autorizam implicitamente perda de dados. Se o usuário já pediu a ação destrutiva com alvo e escopo claros, não peça de novo — salvo risco adicional relevante não evidente antes.
 
@@ -99,7 +99,7 @@ Carregue só o contexto relevante para a tarefa atual. Nunca duplique no global 
 
 ## 6. Retroalimentação
 
-Ao concluir uma unidade de trabalho que gerou aprendizado reutilizável, ou quando o usuário encerrar a sessão ("é isso", "obrigado", "pode parar", despedida), atualize sem perguntar os arquivos de contexto que o projeto **já usa**. Se o projeto não tiver esses arquivos, proponha criá-los em vez de criar por conta própria. "Ok"/"tá bom" no meio da tarefa não é encerramento.
+Ao concluir uma unidade de trabalho que gerou aprendizado reutilizável, atualize sem perguntar os arquivos de contexto que o projeto **já usa**. Encerramento da sessão ("é isso", "obrigado", "pode parar", despedida) é só o último momento para fazer isso — sem aprendizado novo, não edite nada. "Ok"/"tá bom" no meio da tarefa não é encerramento. Projeto sem esses arquivos: proponha criá-los no máximo uma vez, e só se houver algo concreto a registrar. Sessão sem projeto: não proponha.
 
 Classifique o conhecimento:
 
@@ -143,13 +143,25 @@ Para código, configuração e artefatos técnicos executáveis: prefira o menor
 
 Comentários só para o **porquê** não óbvio — evite comentários que apenas repetem o código. Problema encontrado fora do escopo: reporte, não corrija sem pedido.
 
-## 10. Agents e subagents
+## 10. Modelos, agents e subagents
+
+Política única para agente principal e subagents: **Opus para planejar, Sonnet para executar.**
+
+### Agente principal
+
+- Planejamento (arquitetura, decomposição ambígua, decisão de alto impacto, revisão crítica) → Opus, de preferência em plan mode.
+- Execução de plano aprovado (implementação, bugs, refactors definidos, config, testes, lint, build, docs) → Sonnet.
+- Você não troca o próprio modelo: ele vem da sessão/config. Se o modelo ativo não corresponder à fase, avise em uma linha no início dela e recomende `/model opusplan` (Opus no plan mode, Sonnet fora dele — cumpre a política sozinho), ou `/model opus` / `/model sonnet`. Não bloqueie o trabalho nem repita o aviso na mesma fase.
+- Tarefa pequena e bem definida → não exija plano nem troca de modelo; execute no modelo ativo.
+- Decisão arquitetural material inesperada durante a execução → pause, escale só essa decisão (plan mode/Opus ou subagent Opus) e retome em Sonnet.
+
+### Subagents
 
 Não use subagent por padrão. Use só quando isolamento de contexto, especialização ou paralelismo real justificarem o custo de delegação — pergunte-se: o benefício de contexto independente supera o custo de delegar, ler e consolidar? Se não, execute no agente principal.
 
 Agrupe tarefas relacionadas em clusters coesos (domínio, arquivos, contexto ou resultado lógico compartilhado) — não crie um worker por task/arquivo/microetapa. Padrão: 1 agente principal + até 3 workers simultâneos (limite, não meta; use 1 ou 2 quando bastar). Acoplamento baixo → paraleliza; médio → agrupa no mesmo worker; alto → agente único. Subagents não criam outros subagents por padrão.
 
-**Modelo:** Opus para planejamento/arquitetura complexos, decomposição ambígua ou revisão de alto impacto. Sonnet (ou modelo mais econômico) para implementação, bugs, refactors definidos, config, testes, lint, build. Decisão arquitetural material inesperada durante execução → escale só essa decisão.
+**Modelo:** defina explicitamente ao criar o worker, seguindo a política — Opus para planejamento, decomposição ambígua ou revisão de alto impacto; Sonnet (ou mais econômico) para implementação, bugs, refactors definidos, config, testes, lint, build.
 
 Cada worker recebe só objetivo, restrições relevantes, arquivos/referências necessários, decisões já tomadas e critério de conclusão — nunca o histórico completo do projeto. Retorno contém só resultado, arquivos alterados, decisões relevantes, testes executados e riscos/pendências — sem raciocínio, logs extensos ou investigação intermediária. O orquestrador não repete automaticamente testes que workers já executaram quando alterações posteriores não podem invalidá-los.
 
@@ -165,7 +177,7 @@ Trate a janela de contexto como recurso limitado — estado durável vai nos arq
 
 Prefira renovar a sessão antes de iniciar outro tema relevante, especialmente quando o histórico acumulado não for mais necessário — mas não interrompa uma unidade lógica em andamento só para renovar contexto.
 
-Antes de encerrar com continuidade pendente: atualize `business-context.md`/`technical-context.md`/`CLAUDE.md` local conforme o aprendizado, registre trabalho pendente e próximo passo, garanta que decisões importantes não existam só no histórico da conversa. Se o próximo tema depender do trabalho atual, crie handoff curto (`.md`) com objetivo, estado atual, decisões tomadas, arquivos relevantes, problemas conhecidos e próximo passo recomendado — para que uma nova sessão continue sem reconstruir todo o contexto pela conversa.
+Antes de encerrar com continuidade pendente: aplique a seção 6, registre trabalho pendente e próximo passo, garanta que decisões importantes não existam só no histórico da conversa. Se o próximo tema depender do trabalho atual, crie handoff curto (`.md`) com objetivo, estado atual, decisões tomadas, arquivos relevantes, problemas conhecidos e próximo passo recomendado — para que uma nova sessão continue sem reconstruir todo o contexto pela conversa.
 
 ## 12. Arquivos
 
